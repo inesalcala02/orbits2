@@ -1,0 +1,7 @@
+# depslib dependency file v1.0
+1689031526 source:c:\users\usuario\desktop\orbits\main.cpp
+	<iostream>
+	<math.h>
+	<stdio.h>
+	<stdlib.h>
+
