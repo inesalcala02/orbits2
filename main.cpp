@@ -262,9 +262,9 @@ vx[i]=vx[i-1]+ h*(f_Kepler(kx[i-1],ky[i-1]));
 k1_vx[i-1]=vx[i-1]+0.5*h*f_Kepler(x[i-1],y[i-1]);
 k1_vy[i-1]=vy[i-1]+0.5*h*f_Kepler(y[i-1],x[i-1]);
 
-x[i]=x[i-1] + h*(vx[i-1]+velocidad(0.5*h,kx[i-1],ky[i-1]));
-y[i]=y[i-1] + h*(vy[i-1]+velocidad(0.5*h,ky[i-1],kx[i-1]));
 
+x[i]=x[i-1] + h*0.5*(vx[i-1]+vx[i]);
+y[i]=y[i-1] + h*0.5*(vy[i-1]+vy[i]);
 
 
 energ[i]=Energia(x[i],y[i],vx[i],vy[i]);
