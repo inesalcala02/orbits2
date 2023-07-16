@@ -2,11 +2,12 @@
 #include <math.h>
 #include<stdio.h>
 #include<stdlib.h>
+#include <vector>
 
-#define H0 -0.5 // Energía inicial, en teoría debería conservarse
-#define phi1 0  // ángulo phi*
-#define e 0.6 //excentricidad
 
+const double H0 = -0.5; // Energía inicial, en teoría debería conservarse
+const double phi1 = 0;  // ángulo phi*
+const double e = 0.6; //excentricidad
 
 //funciones
 
@@ -30,69 +31,77 @@ float Energia(float x,float y,float vx,float vy){
 
 return E;
 }
+
 void EulerExplicito(int pasos, float h);
 void ImpMidpoint(int pasos, float h);
 void Verlet(int pasos, float h);
 void SympcEuler(int pasos, float h);
 void printEexplicito(float x[], float y[],float ener[], float err[], int pasos);
 void printEsymp(float x[], float y[],float ener[],float err[], int pasos);
-void printMidpoint(float x[], float y[],float ener[],float err[], int pasos);
+void printMidpoint(std::vector <float> x, std::vector<float> y, std::vector<float> en, std::vector<float> err);
 void printVerlet(float x[], float y[],float ener[],float err[], int pasos);
 float Calcerror(float x, float y); ///El valor de d hay que ponerlo a mano
 void CalculoAnalitico(int pasos);
 
+// Es mejor omitir, para tener claro los miembros que vienen de std::
+//using namespace std;
 
-
-
-
-using namespace std;
-
+bool doVerlet = false;
+bool doMidPoint = true;
+bool doSymplectic = false;
 int main()
 {
-float L0, d;
 
+    //definición de d y L0
+    float d = 1.0 - e*e;
+    float L0 = sqrt(d);
 
-
-d= 1.0-e*e;      //definición de d y L0
-L0 = sqrt(d);
-
-printf("Parametros del sistema: H0 = %f  e = %f L0 = %f d = %f\n",H0,e, L0, d);
- puts("Pulsa Intro para continuar ... ");
+    printf("Parametros del sistema: H0 = %f  e = %f L0 = %f d = %f\n",H0,e, L0, d);
+    puts("Pulsa Intro para continuar ... ");
     getchar();
 
-// crear array de los pasos temporales para distintos métodos
+    // crear array de los pasos temporales para distintos métodos
 
-float h[4];
-int steps[4];
-h[0]= 0.0005;
-steps[0]=400000 ;//euler explicito
-h[1]=0.05;
-steps[1]=4000; //symplectic Euler, implicit midpoint, Verlet
+    float h[4];
+    int steps[4];
+    h[0]= 0.0005;
+    steps[0]=400000 ;//euler explicito
+    h[1]=0.05;
+    steps[1]=4000; //symplectic Euler, implicit midpoint, Verlet
 
 
-///SOLUCION ANALITICA (sale)
-//CalculoAnalitico(steps[1]);
-puts("Calculo analitico acabado ... ");
+    ///SOLUCION ANALITICA (sale)
+    //CalculoAnalitico(steps[1]);
+    puts("Calculo analitico acabado ... ");
 
-///EULER EXPLÍCITO (sale)
-//EulerExplicito(steps[0], h[0]);
- puts("Metodo Euler explicito acabado ... ");
- //getchar();
+    ///EULER EXPLÍCITO (sale)
+    //EulerExplicito(steps[0], h[0]);
+    // puts("Metodo Euler explicito acabado ... ");
+    //getchar();
 
-///VERLET (sale)
-//Verlet(steps[1],h[1]);
-puts("Metodo de Verlet acabado ... ");
-getchar();
+    ///VERLET (sale)
+    if( doVerlet )
+    {
+        Verlet(steps[1],h[1]);
+        puts("Metodo de Verlet acabado ... ");
+        getchar();
+    }
 
-///IMPLICIT MIDPOINT
-ImpMidpoint(steps[1], h[1]);
-puts("Metodo implicit midpoint acabado ... ");
-getchar();
+    ///IMPLICIT MIDPOINT
+    if( doMidPoint )
+    {
+        ImpMidpoint(steps[1], h[1]);
+        puts("Metodo implicit midpoint acabado ... ");
+        getchar();
+    }
 
-///SYMPLECTIC EULER (sale)
-//SympcEuler(steps[1],h[1]);
-puts("Metodo symplectic Euler acabado ... ");
-getchar();
+    ///SYMPLECTIC EULER (sale)
+    if( doSymplectic )
+    {
+        SympcEuler(steps[1],h[1]);
+        puts("Metodo symplectic Euler acabado ... ");
+        getchar();
+    }
 
 
     return 0;
@@ -101,6 +110,8 @@ getchar();
 
 void EulerExplicito(int pasos, float h){
 
+
+// ---> No es necesario definir el numero de pasos cuando se usa std::vector
 float x[pasos];
 float y[pasos];
 float vx[pasos];
@@ -108,6 +119,7 @@ float vy[pasos];
 float energ[pasos];
 float err[pasos];
 
+// ---> tampoco inicializar, puesto que el vector estara vacio
 for (int i=0; i<pasos; i++){  //inicializar vectores
    x[i]=0;
    y[i]=0;
@@ -116,6 +128,9 @@ for (int i=0; i<pasos; i++){  //inicializar vectores
    energ[i]=0;
    err[i]=0;
 }
+
+// Habria que usar esto, y push_back
+// std::vector <float> x,y,vx,vy,energ,err;
 
 x[0]= 1-e;
 y[0]=0;
@@ -205,110 +220,57 @@ printVerlet(x,y,energ,err,pasos);
 
 
 void ImpMidpoint(int pasos, float h){
-float x[pasos];
-float k1_x[pasos];
-float kx[pasos];
-float ky[pasos];
-float k2_x[pasos];
-float y[pasos];
-float k1_y[pasos];
-float k2_y[pasos];
-float vx[pasos];
-float k1_vx[pasos];
-float k2_vx[pasos];
-float vy[pasos];
-float k1_vy[pasos];
-float k2_vy[pasos];
-float energ[pasos];
-float err[pasos];
-float t=0;
-float aux;
 
-for (int i=1; i<pasos; i++){  //inicializar vectores
-   vx[i]=0;
-   kx[i]=0;
-   ky[i]=0;
-   k1_vx[i]=0;
-   k2_vx[i]=0;
-   vy[i]=0;
-   k1_vy[i]=0;
-   k2_vy[i]=0;
-   x[i]=0;
-   k1_x[i]=0;
-   k2_x[i]=0;
-   y[i]=0;
-   k1_y[i]=0;
-   k2_y[i]=0;
-   energ[i]=0;
-   err[i]=0;
+    // Setting vectors and initial values
+    std::vector <float> x, y, vx, vy;
+    std::vector <float> energy, err;
 
+    x.push_back(1-e);
+    y.push_back(0.01); // Por que 0.01 y no 0?
+    vx.push_back(0);
+    vy.push_back(sqrt((1.0 +e)/(1.0 -e)));
+    energy.push_back(-0.5);
+    err.push_back(0);
+
+    for(int i=0; i<pasos-1;i++){
+
+        /// Getting the last vector element
+        float Xo = x.back();
+        float Yo = y.back();
+
+        float VXo = vx.back();
+        float VYo = vy.back();
+
+        float k1_vx = f_Kepler(Xo, Yo);
+        float k1_vy = f_Kepler(Yo, Xo);
+
+        float k1_x = Xo + h * (VXo + 0.5 * h * k1_vx);
+        float k1_y = Yo + h * (VYo + 0.5 * h * k1_vy);
+
+        float k2_vx = f_Kepler( k1_x, k1_y );
+        float k2_vy = f_Kepler( k1_y, k1_x );
+
+        x.push_back( Xo + h * VXo + 0.5 * h * h * k1_vx );
+        y.push_back( Yo + h * VYo + 0.5 * h * h * k1_vy );
+
+        vx.push_back( VXo + 0.5 * h * (k1_vx + k2_vx) );
+        vy.push_back( VYo + 0.5 * h * (k1_vy + k2_vy) );
+
+        energy.push_back( Energia( x.back(), y.back(), vx.back(), vy.back() ) );
+        err.push_back( Calcerror( x.back(), y.back() ) );
+
+        //printf("Paso %d. X=%f  Y= %f Energia=%f  INI X0 = %f Y0 =%f\n", i, x[i], y[i], energ[i], x[0],y[0]);
+        //getchar();
+    }
+
+    FILE *f3 = fopen("Midpoint1.txt", "w");
+    if(!f3) { printf("Error al abrir el archivo de texto."); exit(1); }
+
+    for(unsigned int i=0; i < x.size(); i++)
+        fprintf(f3,"%f   %f    %f   %f   %f\n", 0.05 * (float) i, x[i], y[i], energy[i], err[i]);
+    fclose(f3);
 }
 
-x[0]= 1-e;
-y[0]=0.01;
-vx[0]=0;
-vy[0]=sqrt((1.0 +e)/(1.0 -e));
-energ[0]=-0.5;
-aux=0;
-for(int i=0; i<pasos-1;i++){
-
-k1_vx[i]=f_Kepler(x[i],y[i]);
-k1_vy[i]=f_Kepler(y[i],x[i]);
-
-k1_x[i]= x[i] + h*(vx[i] + 0.5*h*k1_vx[i]);
-k1_y[i]= y[i] + h*(vy[i] + 0.5*h*k1_vy[i]);
-
-k2_vx[i]=f_Kepler(k1_x[i],k1_y[i]);
-k2_vy[i]=f_Kepler(k1_y[i],k1_x[i]);
-
-x[i+1]=x[i] + h*vx[i] + 0.5*h*h*k1_vx[i];
-y[i+1]=y[i] + h*vy[i] + 0.5*h*h*k2_vy[i];
-
-vx[i+1]=vx[i]+ 0.5*h*(k1_vx[i]+k2_vx[i]);
-vy[i+1]=vy[i]+ 0.5*h*(k1_vy[i]+k2_vy[i]);
-/*
-
-
-k2_vx[i-1]=h*f_Kepler(x[i-1]+0.5*h*vx[i-1], y[i-1]+0.5*h*vy[i-1]);
-k2_vy[i-1]=h*f_Kepler(y[i-1]+0.5*h*vy[i-1], x[i-1]+0.5*h*vx[i-1]);
-
-vx[i]=vx[i-1]+k2_vx[i-1];
-vy[i]=vy[i-1]+k2_vy[i-1];
-
-
-k2_x[i-1]=h*(velocidad(h*0.5,x[i-1]+0.5*h*vx[i-1],y[i-1]+0.5*h*vy[i-1]) + vx[i-1]);
-k2_y[i-1]=h*(velocidad(h*0.5,y[i-1]+0.5*h*vy[i-1],x[i-1]+0.5*h*vx[i-1]) + vy[i-1]);
-
-x[i]=x[i-1]+k2_x[i-1];
-y[i]=y[i-1]+k2_y[i-1];
-
-t=i*h;*/
-//printf("tiempo %f",t);
-/*
-kx[i-1]= x[i-1]+h*0.5*vx[i-1];
-ky[i-1]= y[i-1]+h*0.5*vy[i-1];
-
-vy[i]=vy[i-1]+ h*(f_Kepler(ky[i-1],kx[i-1]));
-vx[i]=vx[i-1]+ h*(f_Kepler(kx[i-1],ky[i-1]));
-
-k1_vx[i-1]=vx[i-1]+0.5*h*f_Kepler(x[i-1],y[i-1]);
-k1_vy[i-1]=vy[i-1]+0.5*h*f_Kepler(y[i-1],x[i-1]);
-
-
-x[i]=x[i-1] + h*0.5*(vx[i-1]+vx[i]);
-y[i]=y[i-1] + h*0.5*(vy[i-1]+vy[i]);*/
-
-
-
-
-energ[i]=Energia(x[i],y[i],vx[i],vy[i]);
-err[i]=Calcerror(x[i],y[i]);
-//printf("Paso %d. X=%f  Y= %f Energia=%f  INI X0 = %f Y0 =%f\n", i, x[i], y[i], energ[i], x[0],y[0]);
-//getchar();
-}
-
-printMidpoint(x,y,energ,err,pasos);
-}
 
 //imprimir archivos de texto con las coordenadas x,y en los distintos pasos de tiempo, y también la energía
 void SympcEuler(int pasos, float h){
@@ -392,19 +354,6 @@ FILE *f2;
 }
 
 
-void printMidpoint(float x[], float y[],float ener[],float err[], int pasos){
-    float aux;
-FILE *f3;
- f3=fopen("Midpoint1.txt", "w");
-	if(f3==NULL){printf("Error al abrir el archivo de texto.");exit(1);	}
-
-    for(int i=0;i<pasos;i++){
-             aux=i*0.05;
-            fprintf(f3,"%f   %f    %f   %f   %f\n",aux,x[i],y[i],ener[i], err[i]);
-    }
-    fclose(f3);
-
-}
 
 
 void printVerlet(float x[], float y[],float ener[],float err[], int pasos){
