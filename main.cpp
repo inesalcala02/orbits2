@@ -72,26 +72,26 @@ steps[1]=4000; //symplectic Euler, implicit midpoint, Verlet
 
 ///SOLUCION ANALITICA (sale)
 //CalculoAnalitico(steps[1]);
-puts("Cálculo analítico acabado ... ");
+puts("Calculo analitico acabado ... ");
 
 ///EULER EXPLÍCITO (sale)
 //EulerExplicito(steps[0], h[0]);
- puts("Método Euler explicito acabado ... ");
+ puts("Metodo Euler explicito acabado ... ");
  //getchar();
 
 ///VERLET (sale)
 //Verlet(steps[1],h[1]);
-puts("Método de Verlet acabado ... ");
+puts("Metodo de Verlet acabado ... ");
 getchar();
 
 ///IMPLICIT MIDPOINT
 ImpMidpoint(steps[1], h[1]);
-puts("Método implicit midpoint acabado ... ");
+puts("Metodo implicit midpoint acabado ... ");
 getchar();
 
 ///SYMPLECTIC EULER (sale)
 //SympcEuler(steps[1],h[1]);
-puts("Método symplectic Euler acabado ... ");
+puts("Metodo symplectic Euler acabado ... ");
 getchar();
 
 
